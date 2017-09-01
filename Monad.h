@@ -24,8 +24,6 @@ concept bool PurableTo = requires(T t) {
     { MonadDetails<M,T,Args...>::pure(t) } -> M<T, Args...>;
 };
 
-
-
 template <template <typename, typename...> typename M, typename ...Args>
 concept bool Purable = PurableTo<M,Dummy, Args...>;
 
@@ -68,7 +66,7 @@ auto bindAll(Args... args)
 
 template<Monad M, typename T, typename F, typename ...Args>
 requires Callable<F, T>
-auto fmap(F f, M<T, Args...> m) -> M<T> 
+auto fmap(F f, M<T, Args...> m) -> M<typename std::invoke_result_t<F,T>>
 {
     return m >>= [f](T t) {
         return MonadDetails<M, typename std::invoke_result_t<F,T>>::pure(std::invoke(f, t));
