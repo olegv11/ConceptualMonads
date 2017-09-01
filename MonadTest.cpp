@@ -1,9 +1,12 @@
 #include "Monad.h"
 #include "OptionalM.h"
 #include "VectorM.h"
+#include "StateM.h"
 
 #include <string>
 #include <iostream>
+#include <vector>
+#include <deque>
 
 std::optional<int> opt_to_string(std::string s)
 {
@@ -17,6 +20,34 @@ std::optional<int> opt_to_string(std::string s)
     }
 }
 
+using Stack = std::deque<int>;
+using Empty = std::tuple<>;
+
+State<Stack, int> pop()
+{
+    return State<Stack, int>([](Stack stack) {
+        int result = stack.front();
+        stack.pop_front();
+
+        return std::make_pair(result, stack);
+    });
+}
+
+State<Stack, Empty> push(int x)
+{
+    return State<Stack, Empty>([x](Stack stack) {
+        stack.push_front(x);
+
+        return std::make_pair(std::make_tuple(), stack);
+    });
+}
+
+
+State<Stack, int> stackManip()
+{
+    return (push(10) >>= ([](auto) -> State<Stack, Empty> { return push(20); }) )
+       >>= ([](auto) { return pop(); });
+}
 
 
 int main()
@@ -40,6 +71,11 @@ int main()
     {
         std::cout << x << std::endl;
     }
+
+    int x = stackManip().evalState(std::deque<int>({100}));
+    
+    std::cout << "Stack value (should be 20): " << x << std::endl;
+
 
     return 0;
 }

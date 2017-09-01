@@ -4,19 +4,19 @@
 #include <array>
 
 
-template <typename T>
-struct MonadDetails<std::vector, T>
+template <typename T, typename ...Args>
+struct MonadDetails<std::vector, T, Args...>
 {
-    static auto pure(T t) -> std::vector<T>
+    static auto pure(T t) -> std::vector<T, Args...>
     {
-        return std::vector({t});
+        return std::vector<T, Args...>({t});
     }
 
     template <typename O, typename F>
-    requires CallableR<std::vector<O>, F, T>
-    static auto bind(std::vector<T> m, F f) -> std::vector<O>
+    requires CallableR<std::vector<O, Args...>, F, T>
+    static auto bind(std::vector<T> m, F f) -> std::vector<O, Args...>
     {
-        std::vector<O> result;
+        std::vector<O, Args...> result;
         result.reserve(m.size());
 
         for (auto& t: m)

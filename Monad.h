@@ -12,60 +12,58 @@ template <typename F, typename ...Args>
 concept bool Callable =
     std::is_invocable<F, Args...>::value;
 
-template <template <typename> typename M, typename T>
-struct MonadDetails
-{
-};
+template <template <typename, typename...> typename M, typename T, typename ...Args>
+struct MonadDetails;
 
 struct Dummy{};
 struct Dummy2{};
 
 
-template <template <typename> typename M, typename T>
+template <template <typename, typename...> typename M, typename T, typename ...Args>
 concept bool PurableTo = requires(T t) {
-    { MonadDetails<M,T>::pure(t) } -> M<T>;
+    { MonadDetails<M,T,Args...>::pure(t) } -> M<T, Args...>;
 };
 
 
 
-template <template <typename> typename M>
-concept bool Purable = PurableTo<M,Dummy>;
+template <template <typename, typename...> typename M, typename ...Args>
+concept bool Purable = PurableTo<M,Dummy, Args...>;
 
-template<template <typename> typename M, typename T>
-M<Dummy> ToDummy(T)
+template<template <typename, typename...> typename M, typename T, typename ...Args>
+M<Args..., Dummy> ToDummy(T)
 {
-    return MonadDetails<M,Dummy>::pure(Dummy{});
+    return MonadDetails<M,Dummy,Args...>::pure(Dummy{});
 }
 
 
-template <template <typename> typename M, typename T, typename O, typename F>
-concept bool BindableTo = requires(M<T> m, F f)
+template <template <typename, typename...> typename M, typename T, typename O, typename F, typename ...Args>
+concept bool BindableTo = requires(M<T, Args...> m, F f)
 {
-        { MonadDetails<M,T>::template bind<O,F>(m,f) };
+        { MonadDetails<M,T,Args...>::template bind<O,F>(m,f) };
 };
 
-template <template <typename> typename M>
-concept bool Bindable = BindableTo<M, Dummy2, Dummy, decltype(ToDummy<M, Dummy2>)>;
+template <template <typename, typename...> typename M, typename ...Args>
+concept bool Bindable = BindableTo<M, Dummy2, Dummy, decltype(ToDummy<M, Dummy2>), Args...>;
 
 
-template<template <typename> typename M>
-concept bool Monad = Purable<M> && Bindable<M>;
+template<template <typename, typename...> typename M, typename ...Args>
+concept bool Monad = Purable<M, Args...> && Bindable<M, Args...>;
 
-
-template <template <typename> typename M, typename T, typename F>
-auto operator>>=(M<T> m, F f) -> typename std::invoke_result<F,T>::type
+template <template <typename, typename...> typename M, typename T, typename F, typename ...Args>
+requires Callable<F, T>
+auto operator>>=(M<T, Args...> m, F f) -> typename std::invoke_result<F,T>::type
 {
-    using Details = MonadDetails<M, T>;
+    using Details = MonadDetails<M, T, Args...>;
     using Res = typename std::invoke_result<F,T>::type::value_type;
-
     return Details::template bind<Res, F>(m, f);
 }
 
-template<Monad M, typename T, typename F, typename O = typename std::invoke_result_t<F,T>>
+
+template<Monad M, typename T, typename F, typename ...Args>
 requires Callable<F, T>
-auto fmap(F f, M<T> m) -> M<T> 
+auto fmap(F f, M<T, Args...> m) -> M<T> 
 {
     return m >>= [f](T t) {
-        return MonadDetails<M,O>::pure(std::invoke(f, t));
+        return MonadDetails<M, typename std::invoke_result_t<F,T>>::pure(std::invoke(f, t));
     };
 }
