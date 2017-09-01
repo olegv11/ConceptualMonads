@@ -5,6 +5,11 @@ os: linux
 before_install:
  - sudo apt-get -qq update
  - sudo apt-get install -y libgtest-dev
+ - cd /usr/src/gtest
+ - sudo cmake ./
+ - sudo make
+ - sudo cp *.a /usr/lib
+ - cd "${TRAVIS_BUILD_DIR}"
 before_script:
  - ./build.sh
 script: "./build/ConceptualMonadsTest"
