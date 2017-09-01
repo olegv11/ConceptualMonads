@@ -45,8 +45,10 @@ State<Stack, Empty> push(int x)
 
 State<Stack, int> stackManip()
 {
-    return (push(10) >>= ([](auto) -> State<Stack, Empty> { return push(20); }) )
-       >>= ([](auto) { return pop(); });
+    return bindAll(push(10),
+            [](auto) {return push(20);},
+            [](auto) {return pop();}
+            );
 }
 
 

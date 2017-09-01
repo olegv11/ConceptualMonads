@@ -58,6 +58,13 @@ auto operator>>=(M<T, Args...> m, F f) -> typename std::invoke_result<F,T>::type
     return Details::template bind<Res, F>(m, f);
 }
 
+// It's not a replacement for a do-notation, but it'll do.
+template <typename ...Args>
+auto bindAll(Args... args)
+{
+    return (... >>= args);
+}
+
 
 template<Monad M, typename T, typename F, typename ...Args>
 requires Callable<F, T>
