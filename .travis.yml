@@ -21,7 +21,7 @@ before_install:
  - eval "${MATRIX_EVAL}"
  - sudo apt-get -qq update
  - sudo apt-get install -y cmake
- - sudo apt-get install -y googletest
+ - sudo apt-get install -y libgtest-dev
  - cd /usr/src/gtest
  - sudo cmake ./
  - sudo make
