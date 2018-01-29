@@ -18,7 +18,6 @@ struct MonadDetails;
 struct Dummy{};
 struct Dummy2{};
 
-
 template <template <typename, typename...> typename M, typename T, typename ...Args>
 concept bool PurableTo = requires(T t) {
     { MonadDetails<M,T,Args...>::pure(t) } -> M<T, Args...>;
