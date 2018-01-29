@@ -4,8 +4,6 @@
 #include "../Monad.h"
 #include "../VectorM.h"
 
-using ::testing::ElementsAre;
-
 TEST(VectorMonadTest, VectorShouldCorrectlyBind)
 {
     std::vector<int> v{1, 2};
