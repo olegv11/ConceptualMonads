@@ -6,11 +6,11 @@
 // thanks to http://cukic.co/2017/03/23/cxx-concepts-for-receiving-functions/
 template <typename R, typename F, typename ...Args>
 concept bool CallableR =
-    std::is_invocable_r<R, F, Args...>::value;
+    std::is_invocable_r_v<R, F, Args...>;
 
 template <typename F, typename ...Args>
 concept bool Callable =
-    std::is_invocable<F, Args...>::value;
+    std::is_invocable_v<F, Args...>;
 
 // A class which, when specialized on M, should contain the definitions
 // for pure and bind of a monad M.
@@ -67,10 +67,10 @@ concept bool Monad = Purable<M, Args...> && Bindable<M, Args...>;
 // Default implementation of >>=
 template <template <typename, typename...> typename M, typename T, typename F, typename ...Args>
 requires Callable<F, T>
-auto operator>>=(M<T, Args...> m, F f) -> typename std::invoke_result<F,T>::type
+auto operator>>=(M<T, Args...> m, F f) -> typename std::invoke_result_t<F,T>
 {
     using Details = MonadDetails<M, T, Args...>;
-    using Res = typename std::invoke_result<F,T>::type::value_type;
+    using Res = typename std::invoke_result_t<F,T>::value_type;
     return Details::template bind<Res, F>(m, f);
 }
 
